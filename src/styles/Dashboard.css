@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&family=Quattrocento:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+
+.toolBarStyle {
+    background: #CC080B;
+    height: 68px;
+    padding:  0 16px !important;
+}
+
+.appBar-logo-container {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: none;
+    margin-left: 3%;
+}
+
+.appBar-logo {
+    width: 50px !important;
+    height: 50px !important;
+}
+
+.appBarTitle {
+    margin-top: 10px;
+    margin-left: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #cc080b;
+    letter-spacing: 3px;
+    text-shadow: #ffffff 2px 0px 0px, #ffffff 1.75517px 0.958851px 0px, #ffffff 1.0806px 1.68294px 0px, #ffffff 0.141474px 1.99499px 0px, #ffffff -0.832294px 1.81859px 0px, #ffffff -1.60229px 1.19694px 0px, #ffffff -1.97998px 0.28224px 0px, #ffffff -1.87291px -0.701566px 0px, #ffffff -1.30729px -1.5136px 0px, #ffffff -0.421592px -1.95506px 0px, #ffffff 0.567324px -1.91785px 0px, #ffffff 1.41734px -1.41108px 0px, #ffffff 1.92034px -0.558831px 0px;
+
+}
+
+.appBarAdmin {
+    color: white !important;
+    margin-left: auto !important;
+    background-color: #8f0709 !important;
+    padding: 19px 36px !important;
+    outline: none !important;
+    border-radius: 0 !important;
+    border: 0px !important;
+    cursor: pointer !important;
+    text-transform: none !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+}
+
+.customCartStyle {
+    margin-left: 8px !important;
+    margin-right: 26px !important;
+}
+
+.toolBarStyle {
+    background: '#CC080B';
+
+
+}
+
+.drawerTitle {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    color: black;
+    -webkit-text-stroke: 1.2px black;
+    text-align: center;
+    justify-content: center;
+}
+
+.drawerListBoxStyle {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+.listItemButtonStyle {
+    padding: 8px !important;
+}
+
+.listItemButtonStyle:hover {
+    background-color: #FDF5F5 !important;
+    border-radius: 5px !important;
+}
+
+.menuIcon {
+    color: #cc080b !important;
+    min-width: 10px !important;
+
+}
+
+.menuItem {
+    color: #cc080b;
+    padding-left: 10px;
+}
+
+.itemBackground {
+    background-color: #F7D7D8 !important;
+    border-radius: 5px !important;
+}
+
+.main-container {
+    padding: 0;
+}
+
+.main-body {
+    min-height: 100dvh;
+    background: linear-gradient(0deg, rgba(230, 230, 230, 0.9), rgba(230, 230, 230, 0.9)), url('../assets/img/dash-bg.png');
+    /* background-image: url("../../src/assets/img/dashboard-bg.jpg"); */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.btnLogoutStyle {
+    color: #CC080B !important;
+    border: 2px solid #CC080B !important;
+    border-radius: 30px !important;
+    font-size: 14px !important;
+    text-transform: none !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+    padding: 8px 0px !important;
+}
+
+.btnLogoutStyle:hover {
+    border: 2px solid #CC080B !important;
+    color: white !important;
+    background-color: #CC080B !important;
+
+}
+
+@media (min-width: 1024px) {
+    .appBarTitle {
+        margin-left: 10px;
+        font-size: 22px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .hamburger-menu {
+        display: none !important;
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .toolBarStyle {
+        
+        padding:  0 0 !important;
+        display: flex !important;
+        justify-content: space-between;
+        
+    }
+    .appBarAdmin {
+        display: none !important;
+    }
+
+    .customCartStyle {
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+    }
+
+    .main-body {
+        min-height: 100dvh;
+        background: whitesmoke;
+    }
+}

@@ -1,0 +1,119 @@
+.mainOrderCardContainer {
+
+    max-width: 90% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 20px !important;
+    margin-bottom: 40px !important;
+}
+
+
+.isoDateStyle {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+}
+
+.DateTextStyle {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+    margin-bottom: 16px !important;
+    color: #A2A2A2;
+}
+
+/* this is for my custom List Item Style */
+
+.customListItem {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+}
+
+.foodNameTextStyle {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin-bottom: 8px !important;
+}
+
+.foodPriceTextStyle {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #4caf50 !important;
+    line-height: 1.6 !important;
+}
+
+.foodQtyTextStyle {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+    display: flex !important;
+    align-items: end !important;
+    margin-right: 20px !important;
+    margin-top: auto !important;
+    margin-left: auto !important;
+}
+
+/* this is for my custom List Item Style */
+
+
+/* Table INFO style */
+.itemInfoStyle {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding-top: 12px !important;
+}
+
+.itemTotalInfoStyle {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding-top: 2px !important;
+}
+
+
+.foodTotalPrice {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+}
+
+.foodStatusStyle {
+    font-weight: 700 !important;
+    color: #fb8c00 !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+/* Table INFO style */
+
+
+
+
+
+
+/* This is for delete button Style */
+.btnCustomStyle {
+    color: #FF0000 !important;
+    border: 1px solid #FF0000 !important;
+}
+
+.btnCustomStyle:hover {
+    color: white !important;
+    background-color: #FF0000 !important;
+}
+
+/* This is for delete button Style */
+
+
+/* Media query for screens smaller than 600px */
+@media (max-width: 600px) {
+    .mainOrderCardContainer>.MuiGrid-item {
+        width: calc(100% - 20px);
+        margin-right: 0;
+    }
+}

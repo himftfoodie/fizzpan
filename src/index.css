@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&family=Quattrocento:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+
+:root {
+    --primary-color: #cc080b;
+    --secondary-color: #79a33d;
+  }
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Open Sans', sans-serif;
+}
+
+body {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.heading-font {
+  font-family: 'Quattrocento', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: primary;
+  padding-bottom: 5px;
+  border-bottom: 3px solid var(--primary-color);
+}
+
+@media (min-width: 1024px) {
+  .heading-font {
+    font-size: 32px;
+  }
+}
+
+.v-data-table-header__content {
+  display: grid !important;
+  grid-template-columns: 1fr 0.1fr;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.v-data-table-header__content span {
+  min-width: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v-navigation-drawer--right {
+  width: 100% !important;
+}
+
+@media (min-width: 1024px) {
+  .v-navigation-drawer--right {
+    width: 485px !important;
+  }
+}
+
+.col-container {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.col-container .col-text {
+  min-width: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-tooltip {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .table-tooltip {
+    display: none;
+  }
+}
+
+.v-navigation-drawer::-webkit-scrollbar {
+  display: none;
+}
+
+.v-toolbar__content {
+  height: auto !important;
+}
+
+::selection {
+  color: white;
+background-color: var(--primary-color);
+}
+
+
+/* Media Queries */
+/* Small devices (landscape phones, 640px and up) */
+@media only screen and (min-width: 640px) {
+  /* Content */
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  /* Content */
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media only screen and (min-width: 1024px) {
+  /* Content */
+}
+
+/* Extra large devices (large desktops, 1280px and up) */
+@media only screen and (min-width: 1280px) {
+  /* Content */
+}
+
+/* Extra extra large devices (larger desktops, 1536px and up) */
+@media only screen and (min-width: 1536px) {
+  /* Content */
+}

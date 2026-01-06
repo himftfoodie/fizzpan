@@ -1,0 +1,17 @@
+.fp-container{
+    position: fixed;
+    width: 100px;
+    height: 100px;
+    
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+}
+.fp-container .fp-loader{
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    z-index: 100;
+    background: transparent;
+}

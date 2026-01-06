@@ -1,0 +1,118 @@
+.mainContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    box-shadow: 24px;
+    border-radius: 2px !important;
+    background-color: white;
+}
+
+.titleContainer {
+    padding: 8px 16px !important;
+}
+
+.bodyContainerBox {
+    padding: 16px 24px 10px !important;
+}
+
+.bodyContainer {
+    display: flex !important;
+    align-items: center !important;
+    padding: 16px !important;
+}
+
+.imageContainer {
+    height: 190px;
+    width: 322px;
+    padding: 12px;
+}
+
+.infoContainer {
+    height: 190px;
+    width: 322px;
+    padding: 12px;
+}
+
+.bodyText {
+    font-size: 1.5rem !important;
+    font-weight: 400 !important;
+    line-height: 2rem !important;
+    letter-spacing: normal !important;
+    font-family: Roboto, sans-serif !important;
+
+
+}
+
+.inputFieldStyle {
+    width: 300px;
+}
+
+.inputTextContainer {
+    max-height: 70px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 16px 40px;
+}
+
+.buttonStyle {
+    background-color: white !important;
+    color: #CC080B !important;
+}
+
+.buttonStyle:hover {
+    background-color: #F7D7D8 !important;
+}
+
+@media (max-width: 600px) {
+
+    .mainContainer {
+        width: 300px;
+    }
+
+    .titleContainer {
+        padding: 2px 4px !important;
+    }
+
+    .bodyContainerBox {
+        padding: 2px 12px 2px !important;
+    }
+
+    .bodyContainer {
+        flex-direction: column;
+    }
+
+    .imageContainer {
+        height: 140px !important;
+        width: 222px !important;
+        padding: 10px !important;
+    }
+
+    .infoContainer {
+        height: 150px;
+        width: 222px;
+        padding: 24px 12px;
+    }
+
+    .bodyText {
+        font-size: 1.1rem !important;
+        line-height: 1rem !important;
+        text-align: center;
+    }
+
+    .inputFieldStyle {
+        width: 200px;
+    }
+    .buttonContainer {
+        
+        padding: 10px !important;
+        justify-content: center;
+    }
+
+}

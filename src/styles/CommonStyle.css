@@ -1,0 +1,294 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&family=Quattrocento:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&display=swap');
+
+
+/* This is our main paper style */
+.mainPaperStyle {
+    /* width: 100% !important; */
+    margin-left: 256.5px;
+    overflow: hidden !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    
+}
+
+/* This is our main paper style */
+
+
+/* this is the section of over the data table */
+.page-top {
+    background-color: transparent;
+    max-width: 90%;
+    margin: 40px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    font-family: 'Quattrocento', serif !important;
+}
+
+.under-line {
+    padding-bottom: 10px;
+    border-bottom-style: solid;
+    border-bottom-color: #CC080B;
+    border-bottom-width: 3px;
+    width: fit-content;
+}
+
+.topButtonStyle {
+    color: black !important;
+    border: 2px solid #CC080B !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+    padding: 6px 30px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+}
+
+.topButtonStyle:hover {
+    border: 2px solid #CC080B !important;
+    color: white !important;
+    background-color: #CC080B !important;
+}
+
+/* this is the section of over the data table */
+
+
+/* this is the image picker container style */
+
+.centerImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; 
+    margin-left: auto;
+    margin-right: auto;
+  }
+.image-picker-container {
+    border: 1px dashed #ccc;
+    text-align: center;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-style {
+    max-height: 200px;
+    position: relative;
+    top: 50%;
+     left: 50%;
+     transform: translate(-50%, -50%);
+}
+
+/* this is the image picker container style */
+
+
+/* this is the data table style  */
+.mainTableContainer {
+    background-color: white;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.customPadding{
+    padding: 40px;
+}
+
+
+
+
+.tableContainerStyle {
+    max-height: 80%;
+}
+
+.tableHeaderText {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #CC080B !important;
+}
+
+.tableBodyText {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+}
+
+.editButtonStyle {
+    color: #96e399;
+}
+
+.editButtonStyle:hover {
+    color: #4CAF50;
+}
+
+.deleteButtonStyle {
+    color: #d16f70;
+}
+
+.deleteButtonStyle:hover {
+    color: #CC080B;
+}
+
+/* this is the data table style  */
+
+.inputOutline {
+    outline-color: #79A33D !important; /* Change the color to your desired color */
+  }
+
+
+/* this is the add user, table and foods button style */
+.formSubmitButtonStyle {
+    color: white !important;
+    background-color: #CC080b !important;
+    border: 2px solid #CC080B !important;
+    font-size: 14px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    font-weight: bold !important;
+}
+
+.formSubmitButtonStyle:hover {
+    color: white !important;
+    background-color: #CC080b !important;
+    border: 2px solid #CC080B !important;
+}
+
+/* this is the add user, table and foods button style */
+
+
+
+/* this is for visible style of any kind of field */
+.visibleStyle{
+    visibility: hidden !important;
+}
+/* this is for visible style of any kind of field */
+
+
+/* Pagination Styles */
+.MuiTablePagination-input,
+.MuiTablePagination-select {
+    font-size: 16px !important;
+    color: #555 !important;
+    margin-right: 15px !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+    border: 1px #555 solid;
+    border-radius: 3px;
+    background: none !important;
+    padding: 2px 0px 2px 8px;
+}
+
+.MuiTablePagination-selectIcon {
+    color: #555;
+    margin-right: 8px;
+}
+/* Pagination Styles */
+
+
+
+/* Text input Field Style  */
+.custom-text-field {
+    position: relative;
+    margin: 20px;
+  }
+  
+  .custom-text-field label {
+    position: absolute;
+    top: -10px;
+    left: 5px;
+    background-color: white;
+    padding: 0 5px;
+    color: #666;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    pointer-events: none;
+    transition: top 0.3s, font-size 0.3s, color 0.3s;
+  }
+  
+  .custom-text-field input {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+  }
+  
+  .custom-text-field input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  
+  .custom-text-field input:focus + label,
+  .custom-text-field input:not(:placeholder-shown) + label {
+    top: -10px;
+    font-size: 10px;
+    color: #007bff;
+  }
+  
+/* Text input Field Style  */
+
+
+
+/* Responsive */
+@media (max-width: 1280px) {
+    .textWidth{
+        min-width: 120px !important;
+    }
+    .imgWidth{
+        min-width: 30px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    
+    .mainTableContainer {
+        background-color: white;
+        width: 99vw;
+        overflow: auto;
+        
+    }
+    .page-top {
+        max-width: 99%;
+        background: whitesmoke;
+        margin: 25px 20px 10px 20px!important;
+    }
+    .page-title {
+        font-size: 22px !important;
+        
+    }
+
+    .topButtonStyle {
+        
+        margin-top: 10px !important;
+        font-size: 12px !important;
+        
+    }
+    
+    .mainPaperStyle {
+        
+        background-color: whitesmoke !important;
+        
+    }
+    .ellipsText {
+        
+        max-width: 50px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .customPadding{
+        padding: 10px;
+    }
+
+    
+    
+}
