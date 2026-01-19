@@ -8,7 +8,7 @@ import Dashboard from "../pages/dashboard admin/Dashboard.jsx";
 import ErrorePage from "../pages/error page/ErrorePage.jsx";
 
 // Customer Pages
-import CustomerApp from "../pages/customer/UserView.jsx"; 
+import CustomerApp from "../pages/customer/UserView.jsx";
 
 // Components - Admin
 import ProtectedRoute from "../components/publicProtectedRoute/ProtectedRoute.jsx";
@@ -23,8 +23,9 @@ import AddNewTable from "../components/AddNewTable.jsx";
 import AddNewFood from "../components/AddNewFood.jsx";
 import EditUser from "../components/EditUserPage.jsx";
 import EditFood from "../components/EditFood.jsx";
-// import Carts from "../components/Carts.jsx";
-// import AllRevenue from "../components/AllRevenue.jsx";
+import OrderDetails from "../components/OrderDetails.jsx";
+import Carts from "../components/Carts.jsx";
+import AllRevenue from "../components/AllRevenue.jsx";
 
 const routes = createBrowserRouter([
   {
@@ -83,11 +84,11 @@ const routes = createBrowserRouter([
         path: "food-list",
         element: <FoodList />
       },
-      { 
+      {
         path: "add-food",
         element: <AddNewFood />
       },
-      { 
+      {
         path: "edit-food/:id",
         element: <EditFood />
       },
@@ -99,14 +100,18 @@ const routes = createBrowserRouter([
         path: "all-orders-list",
         element: <AllOrdersList />
       },
-      // {
-      //   path: "cart-list",
-      //   element: <Carts />
-      // },
-      // {
-      //   path: "revenue",
-      //   element: <AllRevenue />
-      // }
+      {
+        path: "order-details/:id",
+        element: <OrderDetails />
+      },
+      {
+        path: "cart-list",
+        element: <Carts />
+      },
+      {
+        path: "revenue",
+        element: <AllRevenue />
+      }
     ]
   }
 ]);

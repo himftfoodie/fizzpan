@@ -7,68 +7,119 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Get user from session with role from metadata or profile
+  const getUserFromSession = async (sessionUser) => {
+    // First, try to get role from user_metadata (set during signup or manually)
+    if (sessionUser.user_metadata?.role) {
+      console.log('Using role from user_metadata:', sessionUser.user_metadata.role);
+      return {
+        ...sessionUser,
+        role: sessionUser.user_metadata.role,
+        username: sessionUser.user_metadata.username || sessionUser.email?.split('@')[0] || '',
+      };
+    }
+
+    // Check localStorage cache for role (to avoid repeated slow queries)
+    const cachedRole = localStorage.getItem(`user_role_${sessionUser.id}`);
+    const cachedUsername = localStorage.getItem(`user_username_${sessionUser.id}`);
+    if (cachedRole) {
+      console.log('Using cached role:', cachedRole);
+      return {
+        ...sessionUser,
+        role: cachedRole,
+        username: cachedUsername || sessionUser.email?.split('@')[0] || '',
+      };
+    }
+
+    // If no role in metadata or cache, try to fetch from profiles table with timeout
+    try {
+      console.log('Fetching profile from database...');
+
+      // Create a timeout promise (5 seconds)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+
+      // Create the query promise
+      const queryPromise = supabase
+        .from('profiles')
+        .select('role, username')
+        .eq('id', sessionUser.id)
+        .single();
+
+      // Race them - whichever finishes first wins
+      const { data: profile, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+      if (!error && profile) {
+        console.log('Profile fetched successfully:', profile.role);
+        // Cache the role in localStorage
+        localStorage.setItem(`user_role_${sessionUser.id}`, profile.role || 'user');
+        localStorage.setItem(`user_username_${sessionUser.id}`, profile.username || '');
+        return {
+          ...sessionUser,
+          role: profile.role || 'user',
+          username: profile.username || sessionUser.email?.split('@')[0] || '',
+        };
+      }
+    } catch (err) {
+      console.warn('Profile fetch skipped:', err.message);
+    }
+
+    // Default fallback - only use 'user' if we really don't know
+    console.log('Using default role: user');
+    return {
+      ...sessionUser,
+      role: 'user',
+      username: sessionUser.email?.split('@')[0] || '',
+    };
+  };
+
   useEffect(() => {
-    // Check active sessions and set the user
-    const checkUser = async () => {
+    let isMounted = true;
+
+    // Initialize auth - getSession reads from localStorage (fast)
+    const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          // Get additional user data from profiles table
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          setUser({
-            ...session.user,
-            role: profile?.role || 'user',
-            username: profile?.username || '',
-          });
-        } else {
-          setUser(null);
+
+        if (session?.user && isMounted) {
+          const userData = await getUserFromSession(session.user);
+          setUser(userData);
         }
       } catch (error) {
-        console.error('Error checking user session:', error);
-        setUser(null);
+        console.error('Auth init error:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    checkUser();
+    initAuth();
 
-    // Listen for auth changes
+    // Listen for subsequent auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        try {
-          if (session?.user) {
-            // Get additional user data from profiles table
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-              
-            setUser({
-              ...session.user,
-              role: profile?.role || 'user',
-              username: profile?.username || '',
-            });
-          } else {
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Error in auth state change:', error);
-          setUser(null);
-        } finally {
-          setLoading(false);
+        console.log('Auth event:', event);
+
+        // Only handle actual state changes, not initial session
+        if (event === 'INITIAL_SESSION') {
+          return; // Already handled by initAuth
+        }
+
+        if (session?.user) {
+          const userData = await getUserFromSession(session.user);
+          if (isMounted) setUser(userData);
+        } else {
+          if (isMounted) setUser(null);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
@@ -83,9 +134,9 @@ export function AuthProvider({ children }) {
           }
         }
       });
-      
+
       if (error) throw error;
-      
+
       // Create profile in profiles table
       if (data.user) {
         const { error: profileError } = await supabase
@@ -95,13 +146,12 @@ export function AuthProvider({ children }) {
             username: userData.username,
             role: 'user',
           }]);
-          
+
         if (profileError) {
           console.error('Error creating profile:', profileError);
-          // Don't throw error here as user is created, just log it
         }
       }
-      
+
       return data;
     },
     signIn: async (email, password) => {
@@ -126,14 +176,7 @@ export function AuthProvider({ children }) {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    // Return default values when context is not available
-    return {
-      user: null,
-      loading: false,
-      signUp: async () => {},
-      signIn: async () => {},
-      signOut: async () => {}
-    };
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

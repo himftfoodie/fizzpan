@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getProfiles, deleteProfile } from '../services/profileService';
 import UseLoader from './loader/UseLoader';
-import ApiCall from './apiCollection/ApiCall';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, ChevronLeft, ChevronRight, User, Shield, UserCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -32,26 +31,24 @@ export default function UserList() {
     const removeUser = async (userId) => {
         try {
             showLoader();
-            const response = await axios.delete(`${ApiCall.profile}/${userId}`);
+            await deleteProfile(userId);
 
-            if (response.status === 200 || response.status === 204) {
-                const updateRows = rows.filter(row => row?.id !== userId);
-                setRows(updateRows);
-                setTotalData(prev => prev - 1);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'User has been deleted.',
-                    confirmButtonColor: '#A1887F'
-                });
-            }
+            const updateRows = rows.filter(row => row?.id !== userId);
+            setRows(updateRows);
+            setTotalData(prev => prev - 1);
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'User has been deleted.',
+                confirmButtonColor: '#A1887F'
+            });
             hideLoader();
         } catch (error) {
             hideLoader();
             Swal.fire({
                 icon: "error",
                 title: "Request Failed",
-                text: error.response?.data?.message || "Unable to delete user",
+                text: error.message || "Unable to delete user",
                 confirmButtonColor: '#A1887F'
             });
         }
@@ -61,27 +58,14 @@ export default function UserList() {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await axios.get(ApiCall.profile);
-                
-                // Response langsung array dari backend
-                if (response.data.status && Array.isArray(response.data.data)) {
-                    const allProfiles = response.data.data;
-                    setRows(allProfiles);
-                    setTotalData(allProfiles.length);
-                } else if (Array.isArray(response.data)) {
-                    setRows(response.data);
-                    setTotalData(response.data.length);
-                }
-                
+                const profiles = await getProfiles();
+                setRows(profiles || []);
+                setTotalData(profiles?.length || 0);
                 hideLoader();
             } catch (error) {
                 hideLoader();
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: error.response?.data?.message || "Unable to fetch users",
-                    confirmButtonColor: '#A1887F'
-                });
+                console.error('Fetch error:', error);
+                // Don't show error popup, just show empty state
             }
         };
         fetchData();
@@ -128,7 +112,7 @@ export default function UserList() {
                     </div>
                     <Link to="add-user">
                         <button className="px-6 py-2.5 text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-md"
-                                style={{ backgroundColor: '#A1887F' }}>
+                            style={{ backgroundColor: '#A1887F' }}>
                             + Add New User
                         </button>
                     </Link>
@@ -180,9 +164,9 @@ export default function UserList() {
                                                     }}
                                                 />
                                             ) : null}
-                                            <div 
+                                            <div
                                                 className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
-                                                style={{ 
+                                                style={{
                                                     backgroundColor: '#A1887F',
                                                     display: row?.avatar_url ? 'none' : 'flex'
                                                 }}
@@ -196,7 +180,7 @@ export default function UserList() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span 
+                                            <span
                                                 className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full text-white"
                                                 style={{ backgroundColor: getRoleBadgeColor(row?.role) }}
                                             >
@@ -254,11 +238,10 @@ export default function UserList() {
                             <button
                                 onClick={() => handleChangePage(page - 1)}
                                 disabled={page === 0}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page === 0
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page === 0
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
@@ -268,11 +251,10 @@ export default function UserList() {
                             <button
                                 onClick={() => handleChangePage(page + 1)}
                                 disabled={page >= totalPages - 1 || totalData === 0}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page >= totalPages - 1 || totalData === 0
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page >= totalPages - 1 || totalData === 0
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>

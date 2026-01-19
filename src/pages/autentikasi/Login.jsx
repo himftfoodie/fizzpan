@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 import { useAuth } from '../../contexts/AuthContext';
 import Swal from 'sweetalert2';
 import UseLoader from '../../components/loader/UseLoader';
@@ -9,7 +10,7 @@ import LogoImg from '../../assets/img/fizzpan_logo.png';
 
 export default function Login() {
     const { signIn } = useAuth();
-    const navigate = useNavigate();
+
     const [loader, showLoader, hideLoader] = UseLoader();
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
@@ -63,8 +64,6 @@ export default function Login() {
                 text: 'Welcome back!',
                 confirmButtonColor: '#B8804A',
             });
-            
-            navigate('/user');
         } catch (error) {
             console.error('Login error:', error);
             

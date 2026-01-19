@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getProducts, deleteProduct } from '../services/productService';
 import UseLoader from './loader/UseLoader';
-import ApiCall from './apiCollection/ApiCall';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, ChevronLeft, ChevronRight, Image } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -11,6 +10,7 @@ export default function FoodList() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
     const [loader, showLoader, hideLoader] = UseLoader();
 
     const handleDelete = (productId) => {
@@ -32,19 +32,23 @@ export default function FoodList() {
     const removeProduct = async (productId) => {
         try {
             showLoader();
-            const response = await axios.delete(`${ApiCall.product}/${productId}`);
+            await deleteProduct(productId);
 
-            if (response.status === 204 || response.status === 200) {
-                const updateRows = rows.filter(row => row?.id !== productId);
-                setRows(updateRows);
-                setTotalData(totalData - 1);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'Product has been deleted.',
-                    confirmButtonColor: '#A1887F'
-                });
-            }
+            const updatedProducts = allProducts.filter(row => row?.id !== productId);
+            setAllProducts(updatedProducts);
+            setTotalData(updatedProducts.length);
+
+            // Update paginated view
+            const startIndex = page * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            setRows(updatedProducts.slice(startIndex, endIndex));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Product has been deleted.',
+                confirmButtonColor: '#A1887F'
+            });
             hideLoader();
         } catch (error) {
             hideLoader();
@@ -52,7 +56,7 @@ export default function FoodList() {
             Swal.fire({
                 icon: "error",
                 title: "Request Failed",
-                text: error.response?.data?.message || "Unable to delete product",
+                text: error.message || "Unable to delete product",
                 confirmButtonColor: '#A1887F'
             });
         }
@@ -62,41 +66,31 @@ export default function FoodList() {
         const fetchData = async () => {
             showLoader();
             try {
-                const response = await axios.get(ApiCall.product);
-                
-                console.log('API Response:', response.data);
-                
-                // Cek struktur response
-                let products = [];
-                if (Array.isArray(response.data)) {
-                    products = response.data;
-                } else if (response.data.data) {
-                    products = response.data.data;
-                } else if (response.data.products) {
-                    products = response.data.products;
-                }
+                const products = await getProducts();
+                setAllProducts(products || []);
+                setTotalData(products?.length || 0);
 
                 // Pagination di frontend
                 const startIndex = page * rowsPerPage;
                 const endIndex = startIndex + rowsPerPage;
-                const paginatedData = products.slice(startIndex, endIndex);
-                
-                setRows(paginatedData);
-                setTotalData(products.length);
+                setRows((products || []).slice(startIndex, endIndex));
+
                 hideLoader();
             } catch (error) {
                 hideLoader();
                 console.error('Fetch error:', error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: error.response?.data?.message || "Unable to fetch products",
-                    confirmButtonColor: '#A1887F'
-                });
+                // Don't show error popup, just show empty state
             }
         };
         fetchData();
-    }, [page, rowsPerPage]);
+    }, []);
+
+    // Handle pagination changes
+    useEffect(() => {
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        setRows(allProducts.slice(startIndex, endIndex));
+    }, [page, rowsPerPage, allProducts]);
 
     const handleChangePage = (newPage) => {
         setPage(newPage);
@@ -139,7 +133,7 @@ export default function FoodList() {
                     </div>
                     <Link to="/admin/add-food">
                         <button className="px-6 py-2.5 text-white rounded-lg font-medium hover:opacity-90 transition-all"
-                                style={{ backgroundColor: '#A1887F' }}>
+                            style={{ backgroundColor: '#A1887F' }}>
                             + Add Product
                         </button>
                     </Link>
@@ -215,13 +209,12 @@ export default function FoodList() {
                                             {row?.price ? formatPrice(row?.price) : '-'}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                (row?.stock || 0) > 10 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : (row?.stock || 0) > 0 
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${(row?.stock || 0) > 10
+                                                ? 'bg-green-100 text-green-800'
+                                                : (row?.stock || 0) > 0
                                                     ? 'bg-yellow-100 text-yellow-800'
                                                     : 'bg-red-100 text-red-800'
-                                            }`}>
+                                                }`}>
                                                 {row?.stock || 0} units
                                             </span>
                                         </td>
@@ -279,22 +272,20 @@ export default function FoodList() {
                             <button
                                 onClick={() => handleChangePage(page - 1)}
                                 disabled={page === 0}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page === 0
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page === 0
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => handleChangePage(page + 1)}
                                 disabled={page >= totalPages - 1}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page >= totalPages - 1
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page >= totalPages - 1
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>

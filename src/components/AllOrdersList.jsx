@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { supabase } from '../lib/supabase';
 import UseLoader from './loader/UseLoader';
-import ApiCall from './apiCollection/ApiCall';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, ChevronLeft, ChevronRight, User, DollarSign } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -11,6 +10,7 @@ export default function AllOrdersList() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
+    const [allOrders, setAllOrders] = useState([]);
     const [loader, showLoader, hideLoader] = UseLoader();
 
     const handleDelete = (orderId) => {
@@ -32,20 +32,36 @@ export default function AllOrdersList() {
     const removeOrder = async (orderId) => {
         try {
             showLoader();
-            // Update endpoint sesuai API Anda
-            const response = await axios.delete(`${ApiCall.baseUrl}/api/orders/${orderId}`);
 
-            if (response.status === 204 || response.status === 200) {
-                const updateRows = rows.filter(row => row?.id !== orderId);
-                setRows(updateRows);
-                setTotalData(totalData - 1);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'Order has been deleted.',
-                    confirmButtonColor: '#A1887F'
-                });
-            }
+            // Delete order items first (due to foreign key constraint)
+            await supabase
+                .from('order_items')
+                .delete()
+                .eq('order_id', orderId);
+
+            // Delete the order
+            const { error } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', orderId);
+
+            if (error) throw error;
+
+            const updatedOrders = allOrders.filter(row => row?.id !== orderId);
+            setAllOrders(updatedOrders);
+            setTotalData(updatedOrders.length);
+
+            // Update paginated view
+            const startIndex = page * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            setRows(updatedOrders.slice(startIndex, endIndex));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Order has been deleted.',
+                confirmButtonColor: '#A1887F'
+            });
             hideLoader();
         } catch (error) {
             hideLoader();
@@ -53,7 +69,7 @@ export default function AllOrdersList() {
             Swal.fire({
                 icon: "error",
                 title: "Request Failed",
-                text: error.response?.data?.message || "Unable to delete order",
+                text: error.message || "Unable to delete order",
                 confirmButtonColor: '#A1887F'
             });
         }
@@ -63,42 +79,40 @@ export default function AllOrdersList() {
         const fetchData = async () => {
             showLoader();
             try {
-                // Update endpoint sesuai API Anda
-                const response = await axios.get(`${ApiCall.baseUrl}/api/orders`);
-                
-                console.log('Orders API Response:', response.data);
-                
-                // Cek struktur response
-                let orders = [];
-                if (Array.isArray(response.data)) {
-                    orders = response.data;
-                } else if (response.data.data) {
-                    orders = response.data.data;
-                } else if (response.data.orders) {
-                    orders = response.data.orders;
-                }
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        profile:user_id (username)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                setAllOrders(orders || []);
+                setTotalData(orders?.length || 0);
 
                 // Pagination di frontend
                 const startIndex = page * rowsPerPage;
                 const endIndex = startIndex + rowsPerPage;
-                const paginatedData = orders.slice(startIndex, endIndex);
-                
-                setRows(paginatedData);
-                setTotalData(orders.length);
+                setRows((orders || []).slice(startIndex, endIndex));
+
                 hideLoader();
             } catch (error) {
                 hideLoader();
                 console.error('Fetch error:', error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: error.response?.data?.message || "Unable to fetch orders",
-                    confirmButtonColor: '#A1887F'
-                });
+                // Don't show error popup, just show empty state
             }
         };
         fetchData();
-    }, [page, rowsPerPage]);
+    }, []);
+
+    // Handle pagination changes
+    useEffect(() => {
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        setRows(allOrders.slice(startIndex, endIndex));
+    }, [page, rowsPerPage, allOrders]);
 
     const handleChangePage = (newPage) => {
         setPage(newPage);
@@ -136,9 +150,9 @@ export default function AllOrdersList() {
             'cancelled': 'bg-red-100 text-red-800',
             'delivered': 'bg-purple-100 text-purple-800'
         };
-        
+
         const colorClass = statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
-        
+
         return (
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${colorClass}`}>
                 {status || 'Unknown'}
@@ -205,7 +219,7 @@ export default function AllOrdersList() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-                                                     style={{ backgroundColor: '#A1887F' }}>
+                                                    style={{ backgroundColor: '#A1887F' }}>
                                                     <User className="w-4 h-4" />
                                                 </div>
                                                 <div>
@@ -278,22 +292,20 @@ export default function AllOrdersList() {
                             <button
                                 onClick={() => handleChangePage(page - 1)}
                                 disabled={page === 0}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page === 0
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page === 0
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => handleChangePage(page + 1)}
                                 disabled={page >= totalPages - 1}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page >= totalPages - 1
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${page >= totalPages - 1
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>

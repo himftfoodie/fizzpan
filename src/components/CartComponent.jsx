@@ -72,7 +72,12 @@ const CartComponent = () => {
         anchor="right"
         open={open}
         onClose={handleToggle}
-        classes={{ paper: classes.drawerPaper }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 350,
+            backgroundColor: '#fff',
+          },
+        }}
       >
         <div className="p-2">
           <div className="flex items-center justify-between">

@@ -5,14 +5,17 @@ import store from "./components/App/store";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import routes from "./Routes/Routes";
-import App from "./App";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>
-      <RouterProvider router={routes}>
-        <App/>
-      </RouterProvider>
+      <AuthProvider>
+        <CartProvider>
+          <RouterProvider router={routes} />
+        </CartProvider>
+      </AuthProvider>
     </Provider>
   </React.StrictMode>
 );

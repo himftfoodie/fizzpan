@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Swal from 'sweetalert2';
-import ApiCall from './apiCollection/ApiCall';
-import axios from "axios";
+import { getProductById, updateProduct } from '../services/productService';
 import { useNavigate, useParams } from 'react-router-dom';
 import UseLoader from './loader/UseLoader';
 import DefaultAdminImage from '../assets/img/defaultImg.png';
@@ -13,7 +12,7 @@ const EditFood = () => {
     const hiddenFileInput = useRef(null);
     const [loader, showLoader, hideLoader] = UseLoader();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm();
-    
+
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -30,12 +29,8 @@ const EditFood = () => {
         const fetchProduct = async () => {
             showLoader();
             try {
-                const response = await axios.get(`${ApiCall.product}/${id}`);
-                console.log('Product data:', response.data);
-                
-                // Cek struktur response
-                const productData = response.data.data || response.data;
-                
+                const productData = await getProductById(id);
+
                 // Set form data
                 setFormData({
                     name: productData.name || '',
@@ -60,7 +55,7 @@ const EditFood = () => {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.response?.data?.message || 'Failed to load product data',
+                    text: error.message || 'Failed to load product data',
                     confirmButtonColor: '#A1887F'
                 }).then(() => {
                     navigate('/admin/food-list');
@@ -91,7 +86,7 @@ const EditFood = () => {
                         height = (height * maxWidth) / width;
                         width = maxWidth;
                     }
-                    
+
                     if (height > maxWidth) {
                         width = (width * maxWidth) / height;
                         height = maxWidth;
@@ -104,15 +99,15 @@ const EditFood = () => {
                     ctx.drawImage(img, 0, 0, width, height);
 
                     let compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-                    
+
                     const sizeInKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
                     console.log('Compressed size:', sizeInKB, 'KB');
-                    
+
                     if (sizeInKB > 300) {
                         compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
                         console.log('Re-compressed size:', Math.round((compressedBase64.length * 3) / 4 / 1024), 'KB');
                     }
-                    
+
                     resolve(compressedBase64);
                 };
                 img.onerror = reject;
@@ -125,7 +120,7 @@ const EditFood = () => {
         const { name, value } = e.target;
         if (name === 'image') {
             const file = e.target.files[0];
-            
+
             if (file) {
                 if (file.size > 5 * 1024 * 1024) {
                     Swal.fire({
@@ -139,10 +134,10 @@ const EditFood = () => {
                 showLoader();
                 const compressedBase64 = await compressImage(file);
                 hideLoader();
-                
+
                 console.log('Original size:', file.size, 'bytes');
                 console.log('Compressed size:', Math.round((compressedBase64.length * 3) / 4), 'bytes');
-                
+
                 setFormData({ ...formData, base64: compressedBase64 });
             }
         } else {
@@ -154,9 +149,6 @@ const EditFood = () => {
         showLoader();
 
         try {
-            console.log('Form Data:', formData);
-            console.log('API Endpoint:', `${ApiCall.product}/${id}`);
-
             if (!formData.name || !formData.price) {
                 hideLoader();
                 Swal.fire({
@@ -175,76 +167,32 @@ const EditFood = () => {
                 image: formData.base64 || formData.image || ''
             };
 
-            const dataSize = new Blob([JSON.stringify(productData)]).size;
-            console.log('Request size:', (dataSize / 1024).toFixed(2), 'KB');
-            
-            if (dataSize > 1024 * 1024) {
-                hideLoader();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Image too large',
-                    text: 'Please select a smaller image or reduce quality',
-                });
-                return;
-            }
+            // Use Supabase service
+            await updateProduct(id, productData);
 
-            const token = localStorage.getItem('token');
-            
-            // PUT request untuk update
-            const response = await axios.put(`${ApiCall.product}/${id}`, productData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token && { 'Authorization': `Bearer ${token}` })
-                }
+            hideLoader();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Product has been updated successfully',
+            }).then(() => {
+                navigate("/admin/food-list");
             });
-
-            console.log('Response:', response);
-
-            if (response.status === 200 || response.status === 201) {
-                hideLoader();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Product has been updated successfully',
-                }).then(() => {
-                    navigate("/admin/food-list");
-                });
-            }
 
         } catch (error) {
             hideLoader();
-            
             console.error('Submit error:', error);
-            console.error('Error response:', error.response);
-            console.error('Error data:', error.response?.data);
-            console.error('Error status:', error.response?.status);
-            
-            let errorMessage = "Failed to update product. Please try again.";
-            let errorTitle = "Request Failed";
-            
-            if (error.response?.status === 413) {
-                errorTitle = "Image Too Large";
-                errorMessage = "The image is too large. Please select a smaller image (recommended < 500KB)";
-            } else if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.response?.data?.error) {
-                errorMessage = error.response.data.error;
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            
+
             Swal.fire({
                 icon: "error",
-                title: errorTitle,
-                text: errorMessage,
-                footer: error.response?.status ? `Status: ${error.response.status}` : ''
+                title: "Request Failed",
+                text: error.message || "Failed to update product. Please try again.",
             });
         }
     };
 
-    const inputClass = (hasError) => `w-full px-3 py-2.5 border rounded focus:outline-none transition-colors bg-white ${
-        hasError ? 'border-red-400' : 'border-gray-300 focus:border-[#A1887F]'
-    }`;
+    const inputClass = (hasError) => `w-full px-3 py-2.5 border rounded focus:outline-none transition-colors bg-white ${hasError ? 'border-red-400' : 'border-gray-300 focus:border-[#A1887F]'
+        }`;
 
     if (isLoading) {
         return (
@@ -263,7 +211,7 @@ const EditFood = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <button 
+                        <button
                             onClick={() => navigate('/admin/food-list')}
                             className="text-gray-600 hover:text-gray-800"
                         >
@@ -278,15 +226,15 @@ const EditFood = () => {
                 <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="space-y-6">
-                            
+
                             {/* Product Image Picker */}
                             <div className="flex justify-center">
                                 <div className="text-center">
                                     <label className="block text-sm font-medium mb-2" style={{ color: '#A1887F' }}>
                                         Product Image
                                     </label>
-                                    <div 
-                                        onClick={handleClick} 
+                                    <div
+                                        onClick={handleClick}
                                         className="w-32 h-32 mx-auto border-2 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                                         style={{ borderColor: '#A1887F' }}
                                     >
@@ -295,12 +243,12 @@ const EditFood = () => {
                                         ) : (
                                             <img src={DefaultAdminImage} alt="Default" className="w-full h-full object-cover" />
                                         )}
-                                        <input 
-                                            type="file" 
-                                            accept="image/*" 
-                                            name="image" 
-                                            onChange={handleChange} 
-                                            ref={hiddenFileInput} 
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            name="image"
+                                            onChange={handleChange}
+                                            ref={hiddenFileInput}
                                             className="hidden"
                                         />
                                     </div>
@@ -317,7 +265,7 @@ const EditFood = () => {
                                     type="text"
                                     name="name"
                                     value={formData.name}
-                                    {...register('name', { 
+                                    {...register('name', {
                                         required: 'Product name is required',
                                         minLength: {
                                             value: 3,
@@ -341,7 +289,7 @@ const EditFood = () => {
                                 <textarea
                                     name="description"
                                     value={formData.description}
-                                    {...register('description', { 
+                                    {...register('description', {
                                         required: 'Description is required',
                                         minLength: {
                                             value: 10,
@@ -367,11 +315,11 @@ const EditFood = () => {
                                     type="number"
                                     name="price"
                                     value={formData.price}
-                                    {...register('price', { 
+                                    {...register('price', {
                                         required: 'Price is required',
-                                        min: { 
-                                            value: 0, 
-                                            message: 'Price must be positive' 
+                                        min: {
+                                            value: 0,
+                                            message: 'Price must be positive'
                                         }
                                     })}
                                     onInput={handleChange}
@@ -395,11 +343,11 @@ const EditFood = () => {
                                     type="number"
                                     name="stock"
                                     value={formData.stock}
-                                    {...register('stock', { 
+                                    {...register('stock', {
                                         required: 'Stock is required',
-                                        min: { 
-                                            value: 0, 
-                                            message: 'Stock must be positive' 
+                                        min: {
+                                            value: 0,
+                                            message: 'Stock must be positive'
                                         }
                                     })}
                                     onInput={handleChange}

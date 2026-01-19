@@ -3,22 +3,16 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
 
 export default function AlreadyLoggedInRoute({ children }) {
-    const auth = useAuth();
+    const { user, loading } = useAuth();
     const location = useLocation();
 
-    // Handle case when useAuth returns undefined
-    if (!auth) {
-        return children;
-    }
-
-    const { user, loading } = auth;
-
+    // Show loading while checking auth
     if (loading) {
         return (
-            <Box 
-                display="flex" 
-                justifyContent="center" 
-                alignItems="center" 
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
                 minHeight="100vh"
             >
                 <CircularProgress />
@@ -33,7 +27,7 @@ export default function AlreadyLoggedInRoute({ children }) {
         if (from) {
             return <Navigate to={from} replace />;
         }
-        
+
         // Redirect berdasarkan role
         const redirectPath = user.role === 'admin' ? '/admin' : '/user';
         return <Navigate to={redirectPath} replace />;

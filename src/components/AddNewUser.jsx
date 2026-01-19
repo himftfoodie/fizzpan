@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import Swal from 'sweetalert2';
-import ApiCall from './apiCollection/ApiCall';
-import axios from "axios";
+import { createProfile } from '../services/profileService';
 import { useNavigate } from 'react-router-dom';
 import UseLoader from './loader/UseLoader';
 import DefaultAdminImage from '../assets/img/defaultImg.png';
@@ -46,42 +45,36 @@ export default function AddNewUser() {
   const onSubmit = async () => {
     showLoader();
     try {
-      // Prepare data untuk API
+      // Prepare data untuk Supabase
       const dataToSend = {
         username: formData.username,
         role: formData.role,
         avatar_url: formData.base64 || formData.avatar_url
       };
 
-      const response = await axios.post(`${ApiCall.baseUrl}/api/profile`, dataToSend, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      await createProfile(dataToSend);
 
-      if (response.status === 200 || response.status === 201) {
-        hideLoader();
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "User has been added successfully",
-        }).then(() => {
-          navigate("/admin");
-        });
-      }
+      hideLoader();
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "User has been added successfully",
+      }).then(() => {
+        navigate("/admin");
+      });
     } catch (error) {
       hideLoader();
+      console.error('Submit error:', error);
       Swal.fire({
         icon: "error",
         title: "Request Failed",
-        text: error.response?.data?.message || "Failed to add user. Please try again.",
+        text: error.message || "Failed to add user. Please try again.",
       });
     }
   };
 
-  const inputClass = (hasError) => `w-full px-3 py-2.5 border rounded focus:outline-none transition-colors bg-white ${
-    hasError ? 'border-red-400' : 'border-gray-300 focus:border-[#A1887F]'
-  }`;
+  const inputClass = (hasError) => `w-full px-3 py-2.5 border rounded focus:outline-none transition-colors bg-white ${hasError ? 'border-red-400' : 'border-gray-300 focus:border-[#A1887F]'
+    }`;
 
   return (
     <div className="min-h-screen bg-white p-4 md:p-8">
@@ -96,15 +89,15 @@ export default function AddNewUser() {
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-6">
-              
+
               {/* Avatar Image Picker */}
               <div className="flex justify-center">
                 <div className="text-center">
                   <label className="block text-sm font-medium mb-2" style={{ color: '#A1887F' }}>
                     Profile Picture
                   </label>
-                  <div 
-                    onClick={handleClick} 
+                  <div
+                    onClick={handleClick}
                     className="w-32 h-32 mx-auto border-2 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                     style={{ borderColor: '#A1887F' }}
                   >
@@ -113,12 +106,12 @@ export default function AddNewUser() {
                     ) : (
                       <img src={DefaultAdminImage} alt="Default" className="w-full h-full object-cover" />
                     )}
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      name="avatar_url" 
-                      onInput={handleChange} 
-                      ref={hiddenFileInput} 
+                    <input
+                      type="file"
+                      accept="image/*"
+                      name="avatar_url"
+                      onInput={handleChange}
+                      ref={hiddenFileInput}
                       className="hidden"
                     />
                   </div>
@@ -135,7 +128,7 @@ export default function AddNewUser() {
                   type="text"
                   name="username"
                   value={formData.username}
-                  {...register('username', { 
+                  {...register('username', {
                     required: 'Username is required',
                     minLength: {
                       value: 3,

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import ApiCall from '../components/apiCollection/ApiCall.js';
+import { getProfileById, updateProfile } from '../services/profileService';
 import Swal from 'sweetalert2';
 import { useNavigate, useParams } from 'react-router-dom';
 import UseLoader from '../components/loader/UseLoader.jsx';
@@ -9,7 +8,7 @@ export default function EditUser() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loader, showLoader, hideLoader] = UseLoader();
-    
+
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -23,19 +22,20 @@ export default function EditUser() {
     const fetchUserData = async () => {
         try {
             showLoader();
-            const response = await axios.get(`${ApiCall.baseUrl}/api/profile/${id}`);
+            const profile = await getProfileById(id);
             setFormData({
-                username: response.data.username,
-                email: response.data.email,
-                role: response.data.role || 'user'
+                username: profile.username || '',
+                email: profile.email || '',
+                role: profile.role || 'user'
             });
             hideLoader();
         } catch (error) {
             hideLoader();
+            console.error('Fetch error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Failed to fetch user data',
-                text: error.response?.data?.message || 'Something went wrong'
+                text: error.message || 'Something went wrong'
             });
         }
     };
@@ -44,25 +44,24 @@ export default function EditUser() {
         e.preventDefault();
         try {
             showLoader();
-            const response = await axios.put(`${ApiCall.baseUrl}/api/profile/${id}`, formData);
-            
-            if (response.status === 200) {
-                hideLoader();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'User role updated successfully',
-                    confirmButtonColor: '#A1887F'
-                }).then(() => {
-                    navigate('/admin');
-                });
-            }
+            await updateProfile(id, { role: formData.role });
+
+            hideLoader();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'User role updated successfully',
+                confirmButtonColor: '#A1887F'
+            }).then(() => {
+                navigate('/admin');
+            });
         } catch (error) {
             hideLoader();
+            console.error('Update error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Failed to update user',
-                text: error.response?.data?.message || 'Something went wrong'
+                text: error.message || 'Something went wrong'
             });
         }
     };
@@ -70,7 +69,7 @@ export default function EditUser() {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit User Role</h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -102,7 +101,7 @@ export default function EditUser() {
                     </label>
                     <select
                         value={formData.role}
-                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A1887F]"
                         required
                     >

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { supabase } from '../lib/supabase';
 import UseLoader from './loader/UseLoader';
-import ApiCall from './apiCollection/ApiCall';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, ChevronLeft, ChevronRight, Package, ShoppingBag } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -11,6 +10,7 @@ export default function OrderItem() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
+    const [allItems, setAllItems] = useState([]);
     const [loader, showLoader, hideLoader] = UseLoader();
 
     const handleDelete = (itemId) => {
@@ -32,20 +32,27 @@ export default function OrderItem() {
     const removeOrderItem = async (itemId) => {
         try {
             showLoader();
-            // Update endpoint sesuai API Anda
-            const response = await axios.delete(`${ApiCall.baseUrl}/api/order_items/${itemId}`);
+            const { error } = await supabase
+                .from('order_items')
+                .delete()
+                .eq('id', itemId);
 
-            if (response.status === 204 || response.status === 200) {
-                const updateRows = rows.filter(row => row?.id !== itemId);
-                setRows(updateRows);
-                setTotalData(totalData - 1);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'Order item has been deleted.',
-                    confirmButtonColor: '#A1887F'
-                });
-            }
+            if (error) throw error;
+
+            const updatedItems = allItems.filter(row => row?.id !== itemId);
+            setAllItems(updatedItems);
+            setTotalData(updatedItems.length);
+
+            const startIndex = page * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            setRows(updatedItems.slice(startIndex, endIndex));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Order item has been deleted.',
+                confirmButtonColor: '#A1887F'
+            });
             hideLoader();
         } catch (error) {
             hideLoader();
@@ -53,7 +60,7 @@ export default function OrderItem() {
             Swal.fire({
                 icon: "error",
                 title: "Request Failed",
-                text: error.response?.data?.message || "Unable to delete order item",
+                text: error.message || "Unable to delete order item",
                 confirmButtonColor: '#A1887F'
             });
         }
@@ -63,42 +70,40 @@ export default function OrderItem() {
         const fetchData = async () => {
             showLoader();
             try {
-                // Update endpoint sesuai API Anda
-                const response = await axios.get(`${ApiCall.baseUrl}/api/order_items`);
-                
-                console.log('Order Items API Response:', response.data);
-                
-                // Cek struktur response
-                let orderItems = [];
-                if (Array.isArray(response.data)) {
-                    orderItems = response.data;
-                } else if (response.data.data) {
-                    orderItems = response.data.data;
-                } else if (response.data.order_items) {
-                    orderItems = response.data.order_items;
-                }
+                const { data: orderItems, error } = await supabase
+                    .from('order_items')
+                    .select(`
+                        *,
+                        product:product_id (name, price)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                setAllItems(orderItems || []);
+                setTotalData(orderItems?.length || 0);
 
                 // Pagination di frontend
                 const startIndex = page * rowsPerPage;
                 const endIndex = startIndex + rowsPerPage;
-                const paginatedData = orderItems.slice(startIndex, endIndex);
-                
-                setRows(paginatedData);
-                setTotalData(orderItems.length);
+                setRows((orderItems || []).slice(startIndex, endIndex));
+
                 hideLoader();
             } catch (error) {
                 hideLoader();
                 console.error('Fetch error:', error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: error.response?.data?.message || "Unable to fetch order items",
-                    confirmButtonColor: '#A1887F'
-                });
+                // Don't show error popup, just log it
             }
         };
         fetchData();
-    }, [page, rowsPerPage]);
+    }, []);
+
+    // Handle pagination changes
+    useEffect(() => {
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        setRows(allItems.slice(startIndex, endIndex));
+    }, [page, rowsPerPage, allItems]);
 
     const handleChangePage = (newPage) => {
         setPage(newPage);
@@ -194,7 +199,7 @@ export default function OrderItem() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-medium"
-                                                     style={{ backgroundColor: '#A1887F' }}>
+                                                    style={{ backgroundColor: '#A1887F' }}>
                                                     <Package className="w-4 h-4" />
                                                 </div>
                                                 <span className="text-sm font-medium text-gray-900">
@@ -203,7 +208,7 @@ export default function OrderItem() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Link 
+                                            <Link
                                                 to={`/admin/order-details/${row?.order_id}`}
                                                 className="text-sm font-medium hover:underline"
                                                 style={{ color: '#A1887F' }}
@@ -212,7 +217,7 @@ export default function OrderItem() {
                                             </Link>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Link 
+                                            <Link
                                                 to={`/admin/food-list`}
                                                 className="text-sm text-gray-700 hover:underline"
                                             >
@@ -221,7 +226,7 @@ export default function OrderItem() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="inline-flex items-center justify-center w-12 h-8 rounded-full text-sm font-bold text-white"
-                                                  style={{ backgroundColor: '#A1887F' }}>
+                                                style={{ backgroundColor: '#A1887F' }}>
                                                 {row?.quantity || 0}
                                             </span>
                                         </td>
@@ -229,8 +234,8 @@ export default function OrderItem() {
                                             {row?.price ? formatPrice(row?.price) : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-bold" style={{ color: '#A1887F' }}>
-                                            {row?.price && row?.quantity 
-                                                ? formatPrice(row?.price * row?.quantity) 
+                                            {row?.price && row?.quantity
+                                                ? formatPrice(row?.price * row?.quantity)
                                                 : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
@@ -276,7 +281,7 @@ export default function OrderItem() {
                                 <span className="text-gray-600">Total Value: </span>
                                 <span className="font-bold text-lg" style={{ color: '#A1887F' }}>
                                     {formatPrice(
-                                        rows.reduce((sum, row) => 
+                                        rows.reduce((sum, row) =>
                                             sum + ((row?.price || 0) * (row?.quantity || 0)), 0
                                         )
                                     )}
@@ -311,22 +316,20 @@ export default function OrderItem() {
                             <button
                                 onClick={() => handleChangePage(page - 1)}
                                 disabled={page === 0}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page === 0
+                                className={`p-2 rounded-lg transition-colors ${page === 0
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                    }`}
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => handleChangePage(page + 1)}
                                 disabled={page >= totalPages - 1}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    page >= totalPages - 1
+                                className={`p-2 rounded-lg transition-colors ${page >= totalPages - 1
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-gray-700 hover:bg-gray-100'
-                                }`}
+                                    }`}
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>
